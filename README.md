@@ -18,29 +18,27 @@ knn_wrapper = KNNWrapper(...) # or: RetomatonWrapper(...)
 knn_wrapper.break_into(model)
 ```
 
-That's it! The model now internally uses kNN-LM or RetoMaton. 
+That's it! The model now internally uses kNN-LM or RetoMaton (see a concrete example at [run_clm.py](run_clm.py#L427-L438))
 
 The files `knnlm.py` and `retomaton.py` are standalone and can be copied to any project. The file `run_clm.py` is an example that shows how to load and run kNN-LM and RetoMaton.
 
 
-Please let us know if anythings is not working as expected, and feel free to create [new issues](https://github.com/neulab/knn-transformers/issues) with any questions.
+This repository is maintained by [Uri Alon](https://urialon.ml).
+Please let us know if anythings is not working as expected, and feel free to create [new issues](https://github.com/neulab/knn-transformers/issues) or email [ualon@cs.cmu.edu](ualon@cs.cmu.edu) with any questions.
 
 
 Table of Contents
 =================
   * [Background](#background)
-  * [Results](#results)
   * [Available Models](#available-models)
+  * [Results](#results)
   * [Quickstart](#quickstart)
     * [Requirements](#requirements)
     * [Step 1: Evaluating the base Language Model](#step-1-evaluating-the-base-language-model)
     * [Step 2: Saving a Datastore](#step-2-saving-a-datastore)
-    * [Step 4: Saving the keys and values for the datastore](#step-4-saving-the-keys-and-values-for-the-datastore)
-    * [Step 5: Building the FAISS index](#step-5-building-the-faiss-index)
-    * [Step 6: Evaluating RetoMaton without clustering](#step-6-evaluating-retomaton-without-clustering)
-    * [Step 7: Adding clustering](#step-7-adding-clustering)
-    * [Step 8: Evaluating the Fine-tuned Model](#step-8-evaluating-the-fine-tuned-model)
-  * [Lambda values](#lambda-values)
+    * [Step 3: Building the FAISS index](#step-3-building-the-faiss-index)
+    * [Step 4: Evaluating Models](#step-4-evaluating-models)
+    * [Step 5: Adding clustering](#step-5-adding-clustering)
   * [All files](#all-files)
   * [Differences from the kNN-LM implementation](#differences-from-the-knn-lm-implementation)
   * [Citation](#citation)
@@ -65,27 +63,6 @@ This allows to save up to 80% of the kNN searches by following pointers instead 
 For more details, see the [paper by Alon et al., ICML'2022](https://arxiv.org/pdf/2201.12431.pdf)
 
 <center style="padding: 40px"><img width="60%" src="images/overview.jpeg" /></center>
-
-## Results - **Wikitext-103**
-The exact results from the RetoMaton papers can be reproduced using the code at [https://github.com/neulab/retomaton](https://github.com/neulab/retomaton) (based on `fairseq`).
-
-The following results were obtained using the code in this repository:
-
-
-
-| Base LM:        | `distilgpt2` | `gpt2` | 
-| :---            |    ----:   |     ---: |
-| base perplexity | 18.25      | 14.84    |
-| kNN-LM          |  15.03     |   12.57  |
-| RetoMaton       | **14.70**  |  **12.46**    |
-
-And when varying the fraction of saved searches:
-TODO
-
-
-These are the results from the RetoMaton paper, on a model that was trained on Wikitext-103 from scratch:
-<center style="padding: 40px"><img width="60%" src="images/wiki.png" /></center>
-
 
 ## Available Models
 
@@ -112,6 +89,29 @@ python run_clm.py --model_name_or_path <base_model_name> \
     --save_total_limit 5 --per_device_train_batch_size 2
 ```
 Where `<base_model_name>` is, for example, `gpt2`, `distilgpt2`, `gpt2-med`, `gpt2-large`, or `gpt2-xl`.
+
+## Results - **Wikitext-103**
+The exact results from the RetoMaton papers can be reproduced using the code at [https://github.com/neulab/retomaton](https://github.com/neulab/retomaton) (based on `fairseq`).
+
+The following results were obtained using the code in this repository:
+
+
+
+| Base LM:        | `distilgpt2` | `gpt2` | 
+| :---            |    ----:   |     ---: |
+| base perplexity | 18.25      | 14.84    |
+| kNN-LM          |  15.03     |   12.57  |
+| RetoMaton       | **14.70**  |  **12.46**    |
+
+And when varying the fraction of saved searches:
+TODO
+
+
+These are the results from the RetoMaton paper, on a model that was trained on Wikitext-103 from scratch:
+<center style="padding: 40px"><img width="60%" src="images/wiki.png" /></center>
+
+
+
 
 ## Quickstart
 
@@ -153,11 +153,10 @@ You can either download our preprocessed Wikitext-103 datastores, or preprocess 
 To download a datastore for Wikitext-103 that we created for the finetuned `gpt2` model (`neulab/gpt2-finetuned-wikitext103`):
 ```bash
 wget -P checkpoints/gpt2/ https://knn-transformers.s3.amazonaws.com/gpt2/dstore_gpt2_116988150_768_vals.npy
-wget https://knn-transformers.s3.amazonaws.com/gpt2/dstore_gpt2_116988150_768_keys.npy
 ```
 
-Similarly, we created datastores using the `distilgpt2-finetuned-wikitext103` model.
-To see all available datastores, go to: [https://knn-transformers.s3.amazonaws.com/index.html](https://knn-transformers.s3.amazonaws.com/index.html)
+Similarly, we created datastores using the `distilgpt2-finetuned-wikitext103`, `gpt2-med-finetuned-wikitext103` and `gpt2-large-finetuned-wikitext103`.
+For all available datastores, see: [https://knn-transformers.s3.amazonaws.com/index.html](https://knn-transformers.s3.amazonaws.com/index.html)
 
 To save a datastore, run:
 ```bash
@@ -172,18 +171,18 @@ python -u run_clm.py \
   --save_knnlm_dstore
 ```
 
-A Wikitext-103 datastore requires about 200GB of disk space.
 
 ### Step 3: Building the FAISS index
 
-The FAISS index requires a training stage where it learns an index for accessing the keys quickly. This step does not require a GPU.
+The FAISS index requires a training phase where it learns an index for accessing the keys quickly. This step does not require a GPU.
 
-To download our index:
-TODO
+To download an index for the finetuned `gpt2` model (`neulab/gpt2-finetuned-wikitext103`):
 ```
 wget -P checkpoints/gpt2/ https://knn-transformers.s3.amazonaws.com/gpt2/index_gpt2_116988150_768.indexed
 ```
- 
+
+Similarly, we trained `faiss` indexes for  `distilgpt2-finetuned-wikitext103`, `gpt2-med-finetuned-wikitext103` and `gpt2-large-finetuned-wikitext103`, see: [https://knn-transformers.s3.amazonaws.com/index.html](https://knn-transformers.s3.amazonaws.com/index.html)
+
 To build the FAISS index yourself (not needed if you already downloaded ours):
 ```bash
 MODEL=neulab/gpt2-finetuned-wikitext103
@@ -191,7 +190,6 @@ MODEL=neulab/gpt2-finetuned-wikitext103
 python -u run_clm.py \
   --model_name_or_path ${MODEL} \
   --dataset_name wikitext --dataset_config_name wikitext-103-raw-v1 \
-  --do_eval \
   --output_dir checkpoints/${MODEL} \
   --dstore_size 116988150 --dstore_dir checkpoints/${MODEL} \
   --build_index
@@ -202,8 +200,6 @@ python -u run_clm.py \
 
 To evaluate kNN-LM and RetoMaton on the validation set:
 
-#### Wikitext-103:
-
 ```bash
 MODEL=neulab/gpt2-finetuned-wikitext103
 
@@ -212,203 +208,46 @@ python -u run_clm.py \
   --dataset_name wikitext --dataset_config_name wikitext-103-raw-v1 \
   --output_dir checkpoints/${MODEL} \
   --do_eval --eval_subset validation \
-  --dstore_size 116988150 --dstore_dir checkpoints/${MODEL} --knn
+  --dstore_size 116988150 --dstore_dir checkpoints/${MODEL} --retomaton
 ```
 
-To encourage the model to perform a full kNN search more frequently and thus increase accuracy and reduce perplexity, use a larger value of `--min-knns` such as `100`. Using `--min-knns 9999999` makes the model perform kNN search at every step (`FoSS = 0` in Figure 3 of the paper), and achieves the best results at the cost of slower speed.
+To use kNN-LM, use the `--knn` flag instead of `--retomaton`.
 
+To encourage the RetoMaton model to perform a full kNN search more frequently and thus increase accuracy and reduce perplexity, use a larger value of `--min-knns` such as `100`. Using `--min-knns 9999999` makes the model perform kNN search at every step (`FoSS = 0` in Figure 3 of the paper), and achieves the best results at the cost of slower speed.
 
-### Step 7: Adding clustering
+Additional possible test-time tunable hyperparameters are `--lmbda` (the interpolation factor between the datastore and the base LM), `--k` (the number of retrieved nearest neighbors) and `--knn_temp` (the softmax temperature when converting the nearest-neighbor distances into a probability distribution).
 
-For the Greedy Merge clustering algorithm. See [the code of He et al. (2021)](https://github.com/jxhe/efficient-knnlm/blob/main/ef_knnlm/dstore_compression/greedy_merge.sh). Greedy Merge is much faster and requires much fewer memory than k-means, but results in slightly higher perplexity:
+### Step 5: Adding clustering
 
+RetoMaton can work without, in which is utilizes its pointers.
+Using clustering allows it to save more nearest-neighbor searches and further reduce perplexity.
 
-
-See also Figures 8 and 9 in Appendix D in the paper.
-
-#### To download our clusters for Wikitext-103:
-Note that only **one** of the following files is needed. For the main experiments in the paper, we used:
+To cluster similar keys for RetoMaton:
 ```bash
-wget -P checkpoints/wt103/ https://retomaton.s3.us-east-2.amazonaws.com/wt103/clusters_s40000000_k1000000_members.pkl
+MODEL=neulab/gpt2-finetuned-wikitext103
+
+python -u run_clm.py \
+  --model_name_or_path ${MODEL} \
+  --dataset_name wikitext --dataset_config_name wikitext-103-raw-v1 \
+  --output_dir checkpoints/${MODEL} \
+  --dstore_size 116988150 --dstore_dir checkpoints/${MODEL}/ \
+  --cluster_dstore --num_clusters 500000 --sample_size 20000000
 ```
 
-but additional clusterings are available as well:
-```bash
-wget -P checkpoints/wt103/ https://retomaton.s3.us-east-2.amazonaws.com/wt103/clusters_s20000000_k500000_members.pkl
-wget -P checkpoints/wt103/ https://retomaton.s3.us-east-2.amazonaws.com/wt103/dstore_merge15_members_sp.pkl
-wget -P checkpoints/wt103/ https://retomaton.s3.us-east-2.amazonaws.com/wt103/dstore_merge29_members.pkl
-```
+Once the clustering file is saved in the directory pointed to by `--dstore_dir`, it will automatically be picked up when running evaluation ([as in the previous step](#step-4-evaluating-models))
 
-#### To download our clusters for Law-MT:
-Note that only **one** of the following files is needed. For the main experiments in the paper, we used:
-```bash
-wget -P checkpoints/law/ https://retomaton.s3.us-east-2.amazonaws.com/law/law_clusters_s40000000_k200000_members.pkl
-```
-
-but additional clustering is available as well:
-```bash
-wget -P checkpoints/law/ https://retomaton.s3.us-east-2.amazonaws.com/law/law_clusters_s40000000_k400000_members.pkl
-```
-
-#### Evaluating RetoMaton with clustering:
-Basically identical to [Step 6: Evaluating RetoMaton without clustering](#step-6-evaluating-retomaton-without-clustering), except that we add the flag `--members <filename>_members.pkl`, 
-
-##### Wikitext-103:
-
-```bash
-DSTORE=checkpoints/wt103/dstore16
-DSTORE_SIZE=103225485
-INDEX=checkpoints/wt103/knn16.index
-MODEL=checkpoints/wt103/wt103_checkpoint_best.pt
-MEMBERS=checkpoints/wt103/clusters_s40000000_k1000000_members.pkl
-
-python eval_lm.py data-bin/wikitext-103 \
-    --path ${MODEL} \
-    --sample-break-mode complete --max-tokens 3072 \
-    --context-window 2560 --softmax-batch 1024000 --batch-size 2 \
-    --gen-subset valid --dstore-filename ${DSTORE} \
-    --indexfile ${INDEX}  \
-    --model-overrides "{'knn_keytype': 'last_ffn_input'}" \
-    --k 1024 --lmbda 0.25 --dstore-size ${DSTORE_SIZE} --knn-keytype last_ffn_input \
-    --probe 32 --knnlm --dstore-fp16 \
-    --knn-sim-func do_not_recomp_l2 --no-load-keys --move-dstore-to-mem \
-    --knnlm-gpu --min-knns 1 --max-knns 1024 \
-    --members ${MEMBERS}
-```
-
-##### Law-MT:
-```bash
-DSTORE=checkpoints/law/dstore16
-DSTORE_SIZE=19068709
-INDEX=checkpoints/law/knn16.index
-MODEL=checkpoints/law/wmt19.en/model.pt
-MEMBERS=checkpoints/law/law_clusters_s40000000_k200000_members.pkl
-
-python eval_lm.py data-bin/law \
-    --path ${MODEL} \
-    --sample-break-mode eos --max-tokens 2048 \
-    --context-window 0 --softmax-batch 1024000 --batch-size 2 \
-    --gen-subset valid --dstore-filename ${DSTORE} \
-    --indexfile ${INDEX}  \
-    --model-overrides "{'knn_keytype': 'last_ffn_input'}" \
-    --k 1024 --lmbda 0.9 --dstore-size ${DSTORE_SIZE} --knn-keytype last_ffn_input \
-    --probe 32 --knnlm --dstore-fp16 \
-    --knn-sim-func do_not_recomp_l2 --no-load-keys --move-dstore-to-mem \
-    --remove-bpe \
-    --knnlm-gpu --min-knns 1 --max-knns 1024\
-    --members ${MEMBERS}
-```
-
-
-#### Cluster the keys yourself (not needed if you downloaded our clusters):
-for Wikitext-103:
-```
-DSTORE=checkpoints/wt103/dstore16
-DSTORE_SIZE=103225485
-NUM_CLUSTERS=1000000
-SAMPLE=40000000
-DIM=1024
-SAVE=kmeans_wt103
-```
-
-For Law-MT:
-```bash
-DSTORE=checkpoints/law/dstore16
-DSTORE_SIZE=19068709
-NUM_CLUSTERS=200000
-SAMPLE=40000000
-DIM=1536
-SAVE=kmeans_law
-```
-
-And then for both datasets:
-```bash
-python kmeans.py --dstore ${DSTORE} --dstore-size ${DSTORE_SIZE} --num-clusters ${NUM_CLUSTERS} --sample ${SAMPLE} --dim ${DIM} --save ${}
-```
-
-
-
-## Step 8: Evaluating the Fine-tuned Model
-The model that was fine-tuned on Law-MT, along with its corresponding datastore, FAISS index and clustering can be downloaded from:
-
-```bash
-mkdir checkpoints/law-finetuned/
-wget -P checkpoints/law-finetuned/ https://retomaton.s3.us-east-2.amazonaws.com/law/finetuned.pt
-wget -P checkpoints/law-finetuned/ https://retomaton.s3.us-east-2.amazonaws.com/law/dstore16_finetuned_size19068709_embed1536_fp16_vals.npy
-wget -P checkpoints/law-finetuned/ https://retomaton.s3.us-east-2.amazonaws.com/law/dstore16_finetuned_size19068709_embed1536_fp16_keys.npy
-wget -P checkpoints/law-finetuned/ https://retomaton.s3.us-east-2.amazonaws.com/law/knn_finetuned.index
-wget -P checkpoints/law-finetuned/ https://retomaton.s3.us-east-2.amazonaws.com/law/law_finetuned_clusters_s20000000_k200000_members.pkl
-```
-
-Finally, [evaluate](#evaluating-retomaton-without-clustering) using the fine-tuned checkpoint, datastore, and index. 
-
-**It is important** to also set `--lmbda 0.25` when using the fine-tuned model: since the model is fine-tuned, we can rely on it more than before. See a clarification at [#lambda-values](#lambda-values)
-
-Best results with the fine-tuned model are achieved _without_ clustering (that is, every datastore entry is a singleton cluster).
-
-Then, the same steps as before should be run on the Law-MT datasets, except that: 
-* `finetuned.pt` should be used as the `${MODEL}`
-* `dstore16_finetuned_size19068709_embed1536_fp16` should be used as the `${DSTORE}`
-* `knn_finetuned.index` should be used as the `${INDEX}`
-* `law_finetuned_clusters_s20000000_k200000_members.pkl` shoould be used as`${MEMBERS}`
-
-That is:
-
-```bash
-DSTORE=checkpoints/law-finetuned/dstore16_finetuned_size19068709_embed1536_fp16
-DSTORE_SIZE=19068709
-INDEX=checkpoints/law-finetuned/knn_finetuned.index
-MODEL=checkpoints/law-finetuned/finetuned.pt
-MEMBERS=checkpoints/law-finetuned/law_finetuned_clusters_s20000000_k200000_members.pkl
-
-python eval_lm.py data-bin/law \
-    --path ${MODEL} \
-    --sample-break-mode eos --max-tokens 2048 \
-    --context-window 0 --softmax-batch 1024000 --batch-size 2 \
-    --gen-subset valid --dstore-filename ${DSTORE} \
-    --indexfile ${INDEX}  \
-    --model-overrides "{'knn_keytype': 'last_ffn_input'}" \
-    --k 1024 --lmbda 0.25 --dstore-size ${DSTORE_SIZE} --knn-keytype last_ffn_input \
-    --probe 32 --knnlm --dstore-fp16 \
-    --knn-sim-func do_not_recomp_l2 --no-load-keys --move-dstore-to-mem \
-    --remove-bpe \
-    --knnlm-gpu --min-knns 1 --max-knns 1024
-```
-
-
-## Lambda values
-In all configurations, the interpolation factor `lmbda` is set to `0.25`, except when the base LM is `checkpoints/law/wmt19.en/model.pt` **and** the model is evaluated on Law-MT, since this scenario tests domain adaptation, and thus `lmbda` should be set to `0.9`:
-
-|             | `wt103_checkpoint_best.pt` | `wmt19.en/model.pt`     | `finetuned.pt` |
-| :---        |    ----:   |     ---: | ---: |
-| Wikitext-103| 0.25       | -    |   -   |
-| Law-MT      | -       | 0.9    |   0.25 |
 
 ## All files: 
-Checkpoints and datasets can be downloaded from here:
-[https://zenodo.org/record/6525426](https://zenodo.org/record/6525426)
+Datastores and indexes can be downloaded from
+ [https://knn-transformers.s3.amazonaws.com/index.html](https://knn-transformers.s3.amazonaws.com/index.html)
 
-And also from the [AWS S3 bucket](https://retomaton.s3.us-east-2.amazonaws.com/) 
+All fine-tuned models are available on Hugging Face Hub: [https://huggingface.co/neulab](https://huggingface.co/neulab)
 
 
 ## Differences from the kNN-LM implementation
-
-### Implementation Pointers
-Here we point to the code that differs our work from kNN-LM.
-* The main changes are in this
-[commit](https://github.com/neulab/retomaton/commit/89a29d1ac6e8c1360637aa1bfe77a1be227e83cc). The pointers for the next timestep are initially [the current k-nearest neighbors + 1](fairseq/sequence_scorer.py#L203). Then we extend each pointer to [consider all entries in its cluster](fairseq/sequence_scorer.py#L216). This is [the function](fairseq/sequence_scorer.py#L240-L251) that maps each pointer to its cluster, removes duplicate clusters, and then finds the members of each cluster. We  [find the log probabilities](fairseq/sequence_scorer.py#L218-L222) as suggested by the new pointers, and finally take to the next timestep - [only the pointers that are consistent](fairseq/sequence_scorer.py#L228) with the token that the model eventually predicted.
-* In [this commit](https://github.com/neulab/retomaton/commit/99cb52001b3c87b15dd8ef892172cfac334bcef5) we [utilize the given pointers](fairseq/knnlm.py#L131-L133), or [perform kNN search](fairseq/knnlm.py#L131-L133) and combine the results with the existing pointers.
-* When using the `--knnlm-gpu` flag, we use a [GPU index](fairseq/knnlm.py#L34-L38) to search for nearest neighbors, and its copy [CPU index](fairseq/knnlm.py#L43-L47) to reconstruct vectors given their ID. Unfortunately, currently reconstructing vectors in `faiss` is [not implemented for GPU indexes](https://github.com/facebookresearch/faiss/issues/2181) (see also [this issue](https://github.com/facebookresearch/faiss/issues/314)). 
-* Reconstructing a **batch** of vectors from the index is unfortunately not implemented in `faiss` (see [this issue](https://github.com/facebookresearch/faiss/issues/1163)), and thus the fastest way that we found to do that is using `np.vectorize`, and reconstructing many single vectors in parallel: [fairseq/knnlm.py#L92-L94](fairseq/knnlm.py#L92-L94).
-* Performing k-means clustering on millions of vectors can be performed in many ways, but specifically we utilize the `faiss` library to do it using the script [kmeans.py](kmeans.py).
-
-### Additional minor differences:
 * The original [kNN-LM](https://github.com/urvashik/knnlm) repository uses `faiss` CPU to perform retrieval. However, we added the flag `--knnlm-gpu` that allows performing retrieval much faster on the GPU.
 * After each retrieval, the original [kNN-LM](https://github.com/urvashik/knnlm) repository loads the found keys and re-computes the distance from the query to each nearest neighbor. This is much more time consuming, unless loading all the keys (200GB) into memory.
-We thus use the flags `--knn-sim-func do_not_recomp_l2 --no-load-keys --move-dstore-to-mem`.
-* When using `faiss-gpu`, it is useful to [`import faiss.contrib.torch_utils`](fairseq/knnlm.py#L3). This allows performing the kNN search using `torch` tensors (rather than only `numpy` arrays). Additionally, sometimes this `import` statement prevents searching bugs in `faiss` (see [this issue](https://github.com/facebookresearch/faiss/issues/2126)).
-
-
+We thus use the distances returned by `faiss` when performing search, or reconstructing the vectors in RetoMaton, without loading the large `keys.npy` file.
 
 
 ## Citation
@@ -417,11 +256,13 @@ If you use this code for research, please cite:
 [Neuro-Symbolic Language Modeling with Automaton-augmented Retrieval](https://arxiv.org/pdf/2201.12431.pdf)
 
 ```
-@article{alon2022neuro,
+@inproceedings{alon2022neuro,
   title={Neuro-Symbolic Language Modeling with Automaton-augmented Retrieval},
-  author={Alon, Uri and Xu, Frank F and He, Junxian and Sengupta, Sudipta and Roth, Dan and Neubig, Graham},
-  journal={arXiv preprint arXiv:2201.12431},
-  year={2022}
+  author={Alon, Uri and Xu, Frank and He, Junxian and Sengupta, Sudipta and Roth, Dan and Neubig, Graham},
+  booktitle={International Conference on Machine Learning},
+  pages={468--485},
+  year={2022},
+  organization={PMLR}
 }
 ```
 
