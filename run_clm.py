@@ -207,7 +207,7 @@ class KNNArguments:
     """
     knn: bool = field(default=False)
     knn_gpu: bool = field(default=True)
-    dstore_size: int = field(default=103225485, metadata={"help": "The size of the dstore."})
+    dstore_size: int = field(default=116988150, metadata={"help": "The size of the dstore."})
     knn_keytype: KEY_TYPE.from_string = field(default=KEY_TYPE.last_ffn_input)
     save_knnlm_dstore: bool = field(default=False)
     dstore_dir: str = field(default="checkpoints")
@@ -232,8 +232,8 @@ class KNNArguments:
     no_pointer: bool = field(default=False)
     min_knns: int = field(default=1)
     max_knns: int = field(default=1024)
-    num_clusters: int = field(default=1000000)
-    sample_size: int = field(default=40000000)
+    num_clusters: int = field(default=500000)
+    sample_size: int = field(default=20000000)
     members: str = field(default=None)
 
 def main():

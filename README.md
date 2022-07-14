@@ -168,7 +168,7 @@ python -u run_clm.py \
   --dataset_name wikitext --dataset_config_name wikitext-103-raw-v1 \
   --do_eval --eval_subset train \
   --output_dir checkpoints/${MODEL} \
-  --dstore_size 116988150 --dstore_dir checkpoints/${MODEL} \
+  --dstore_dir checkpoints/${MODEL} \
   --save_knnlm_dstore
 ```
 
@@ -192,7 +192,7 @@ python -u run_clm.py \
   --model_name_or_path ${MODEL} \
   --dataset_name wikitext --dataset_config_name wikitext-103-raw-v1 \
   --output_dir checkpoints/${MODEL} \
-  --dstore_size 116988150 --dstore_dir checkpoints/${MODEL} \
+  --dstore_dir checkpoints/${MODEL} \
   --build_index
 ```
 
@@ -209,7 +209,7 @@ python -u run_clm.py \
   --dataset_name wikitext --dataset_config_name wikitext-103-raw-v1 \
   --output_dir checkpoints/${MODEL} \
   --do_eval --eval_subset validation \
-  --dstore_size 116988150 --dstore_dir checkpoints/${MODEL} --retomaton
+  --dstore_dir checkpoints/${MODEL} --retomaton
 ```
 
 To use kNN-LM, use the `--knn` flag instead of `--retomaton`.
@@ -231,11 +231,13 @@ python -u run_clm.py \
   --model_name_or_path ${MODEL} \
   --dataset_name wikitext --dataset_config_name wikitext-103-raw-v1 \
   --output_dir checkpoints/${MODEL} \
-  --dstore_size 116988150 --dstore_dir checkpoints/${MODEL}/ \
+  --dstore_dir checkpoints/${MODEL}/ \
   --cluster_dstore --num_clusters 500000 --sample_size 20000000
 ```
 
 Once the clustering file is saved in the directory pointed to by `--dstore_dir`, it will automatically be picked up when running evaluation ([as in the previous step](#step-4-evaluating-models))
+
+Optional clustering hyperparameters are `--num_clusters` (typically `1/100` or `1/200` of the datastore size) and `--sample_size`  (ideally as high as possible, but higher values consume more memory and take longer to run).
 
 
 ## All files: 
