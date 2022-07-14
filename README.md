@@ -247,7 +247,7 @@ All fine-tuned models are available on Hugging Face Hub: [https://huggingface.co
 ## Differences from the kNN-LM implementation
 * The original [kNN-LM](https://github.com/urvashik/knnlm) repository uses `faiss` CPU to perform retrieval. However, we added the flag `--knnlm-gpu` that allows performing retrieval much faster on the GPU.
 * After each retrieval, the original [kNN-LM](https://github.com/urvashik/knnlm) repository loads the found keys and re-computes the distance from the query to each nearest neighbor. This is much more time consuming, unless loading all the keys (200GB) into memory.
-We thus use the distances returned by `faiss` when performing search, or reconstructing the vectors in RetoMaton, without loading the large `keys.npy` file.
+We thus use the distances returned by `faiss` when performing search, or reconstructing the vectors from their index in RetoMaton, without loading the huge `keys.npy` file into memory.
 
 
 ## Citation
