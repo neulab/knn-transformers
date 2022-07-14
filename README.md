@@ -3,7 +3,7 @@
 This is a Hugging Face's 🤗 `transformers` implementation of k-nearest-neighbor-based language models,
 designed to be easy and useful in research, and for experimenting with new ideas in kNN-based models. 
 
-All previous kNN-LM based implementations are implemented in the `fairseq` library, and **they duplicated the library's entire codebase** to implement their modification.
+All previous kNN-LM based implementations are implemented in the `fairseq` library, and **they forked/duplicated the library's entire codebase** to implement their modification.
 These include the official kNN-LM repository [https://github.com/urvashik/knnlm](https://github.com/urvashik/knnlm), the official RetoMaton repository [https://github.com/neulab/retomaton](https://github.com/neulab/retomaton), and others.
 
 
@@ -20,11 +20,12 @@ knn_wrapper.break_into(model)
 
 That's it! The model now internally uses kNN-LM or RetoMaton (see a concrete example at [run_clm.py](run_clm.py#L427-L438))
 
-The files `knnlm.py` and `retomaton.py` are standalone and can be copied to any project. The file `run_clm.py` is an example that shows how to load and run kNN-LM and RetoMaton.
+The files `knnlm.py` and `retomaton.py` are standalone and can be copied to any project. The file `run_clm.py` is a modified version of [this example file by huggingface](https://github.com/huggingface/transformers/blob/main/examples/pytorch/language-modeling/run_clm.py) which shows an example of how to load and run kNN-LM and RetoMaton.
 
 
 This repository is maintained by [Uri Alon](https://urialon.ml).
 Please let us know if anythings is not working as expected, and feel free to create [new issues](https://github.com/neulab/knn-transformers/issues) or email [ualon@cs.cmu.edu](ualon@cs.cmu.edu) with any questions.
+Contributions are welcome!
 
 
 Table of Contents
@@ -97,11 +98,11 @@ The following results were obtained using the code in this repository:
 
 
 
-| Base LM:        | `distilgpt2` | `gpt2` | 
-| :---            |    ----:   |     ---: |
-| base perplexity | 18.25      | 14.84    |
-| kNN-LM          |  15.03     |   12.57  |
-| RetoMaton       | **14.70**  |  **12.46**    |
+| Base LM:        | `distilgpt2` | `gpt2` | `gpt2-medium` |
+| :---            |    ----:   |     ---: | ---:          |
+| base perplexity | 18.25      | 14.84    | 11.55         |
+| kNN-LM          |  15.03     |   12.57  |  **10.59**      |
+| RetoMaton       | **14.70**  | **12.46**| **10.59**     |
 
 And when varying the fraction of saved searches:
 TODO
