@@ -239,8 +239,9 @@ class KNNWrapper(object):
 
     @staticmethod
     def get_model_last_layer(model_type):
-        if model_type.startswith('gpt2'):
-            return lambda model: model.lm_head
+        # works for gpt2, marian, t5. If a model does not have an ".lm_head" layer, 
+        # add an "if model_type is ..." statement here, and return the output embedding layer
+        return lambda model: model.lm_head
 
     @staticmethod
     def get_model_embedding_layer(model_type):
@@ -255,7 +256,15 @@ class KNNWrapper(object):
         'gpt2': {
             KEY_TYPE.last_ffn_input: lambda model: model.base_model.h[-1].mlp,
             KEY_TYPE.last_ffn_output: lambda model: model.base_model.h[-1],
-        }
+        },
+        'marian': {
+            KEY_TYPE.last_ffn_input: lambda model: model.base_model.decoder.layers[-1].fc1,
+            KEY_TYPE.last_ffn_output: lambda model: model.base_model.decoder.layers[-1],
+        },
+        't5': {
+            KEY_TYPE.last_ffn_input: lambda model: model.base_model.decoder.block[-1].layer[2].DenseReluDense,
+            KEY_TYPE.last_ffn_output: lambda model: model.base_model.decoder.block[-1].layer[2],
+        }      
 }
     
 
