@@ -455,6 +455,7 @@ def main():
             recompute_dists=knn_args.recompute_dists,
             lmbda=knn_args.lmbda, knn_temp=knn_args.knn_temp, probe=knn_args.probe, knn_drop=knn_args.knn_drop)
     elif knn_args.save_knnlm_dstore or knn_args.build_index:
+        training_args.predict_with_generate = False
         knn_wrapper = KNNSaver(dstore_size=knn_args.dstore_size, dstore_dir=knn_args.dstore_dir, 
             dimension=dimension, knn_keytype=knn_args.knn_keytype)
     
@@ -469,6 +470,8 @@ def main():
         column_names = raw_datasets["validation"].column_names
     elif training_args.do_predict:
         column_names = raw_datasets["test"].column_names
+    elif knn_args.build_index:
+        logger.info("Building index")
     else:
         logger.info("There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`.")
         return

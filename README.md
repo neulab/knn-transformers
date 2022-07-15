@@ -1,13 +1,13 @@
 # kNN-transformers: Nearest-Neighbor Language Models based on Hugging Face's 🤗 `transformers` library
 
-This is a Hugging Face's 🤗 `transformers` implementation of k-nearest-neighbor-based language models,
+This is a Hugging Face's 🤗 `transformers` implementation of k-nearest-neighbor-based language models and machine translation models,
 designed to be easy and useful in research, and for experimenting with new ideas in kNN-based models. 
 
 All previous kNN-LM based implementations are implemented in the `fairseq` library, and **they forked/duplicated the library's entire codebase** to implement their modification.
 These include the official kNN-LM repository [https://github.com/urvashik/knnlm](https://github.com/urvashik/knnlm), the official RetoMaton repository [https://github.com/neulab/retomaton](https://github.com/neulab/retomaton), and others.
 
 
-We implements the [k-Nearest Neighbor Language Model](https://arxiv.org/pdf/1911.00172.pdf) (Khandelwal et al., ICLR'2020), and this is also
+We implement the [k-nearest-neighbor language model (kNN-LM)](https://arxiv.org/pdf/1911.00172.pdf) (Khandelwal et al., ICLR'2020), the [k-nearest-neighbor machine translation (kNN-MT)](https://arxiv.org/pdf/2010.00710) (Khandelwal et al., ICLR'2021) and this is also
 an official implementation of the RetoMaton model described in:
 ["Neuro-Symbolic Language Modeling with Automaton-augmented Retrieval"](https://arxiv.org/pdf/2201.12431.pdf) (ICML'2022). Most importantly, we implement these models in 🤗 `transformers`, and without modifying the `transformers` library itself.
 
@@ -20,7 +20,8 @@ knn_wrapper.break_into(model)
 
 That's it! The model now internally uses kNN-LM or RetoMaton (see a concrete example at [run_clm.py](run_clm.py#L427-L438))
 
-The files `knnlm.py` and `retomaton.py` are standalone and can be copied to any project. The file `run_clm.py` is a modified version of [this example file by huggingface](https://github.com/huggingface/transformers/blob/main/examples/pytorch/language-modeling/run_clm.py) which shows an example of how to load and run kNN-LM and RetoMaton.
+The files `knnlm.py` and `retomaton.py` are standalone and can be copied to any project. The file `run_clm.py` is a modified version of [this example by huggingface](https://github.com/huggingface/transformers/blob/main/examples/pytorch/language-modeling/run_clm.py) which shows an example of how to load and run kNN-LM and RetoMaton.
+The file `run_translation.py` is a modified version of [this tranlation example by huggingface](https://github.com/huggingface/transformers/tree/main/examples/pytorch/translation), which shows how to use our code for kNN-MT and RetoMaton.
 
 
 This repository is maintained by [Uri Alon](https://urialon.ml).
@@ -46,15 +47,17 @@ Table of Contents
 
 ## Background
 
-### kNN-LM
-The k-Nearest Neighbor Language Model takes an already-trained model, performs a single forward pass over the entire training set, and creates a datastore of `(key,value)` pairs, where `key` is a hidden representation of the trained model after reading a training example, and `value` is the token that should be predicted next.
+### kNN-LM and kNN-MT
+The k-nearest neighbor language model takes an already-trained model, performs a single forward pass over the entire training set, and creates a datastore of `(key,value)` pairs, where `key` is a hidden representation of the trained model after reading a training example, and `value` is the token that should be predicted next.
 
 At test time, for every predicted token, the model performs a k-nearest neighbors search in the datastore, retrieves the `(key,value)` pairs that are closest to the test hidden representation, and normalizes their distances using softmax. Finally, the model interpolates the base LM's probability with the probability formed by the retrieved nearest neighbors and their normalized distances.
-
 For more details, see the [paper by Khandelwal et al., ICLR'2020](https://arxiv.org/pdf/1911.00172.pdf)
 
+kNN-MT is similar to kNN-LM, but it addresses seq2seq/encoder-decoder models, mainly for machine translation. For more details, see the [paper by Khandelwal et al., ICLR'2021](https://arxiv.org/pdf/2010.00710.pdf)
+
+
 ### RetoMaton
-RetoMaton extends kNN-LM, by (1) saving a *pointer* in every datastore entry; and (2) clustering entries according to their keys. That is, every datastore entry is now a tuple `(key,value,pointer)`, and it belongs to a cluster. 
+RetoMaton extends kNN-LM and kNN-MT, by (1) saving a *pointer* in every datastore entry; and (2) clustering entries according to their keys. That is, every datastore entry is now a tuple `(key,value,pointer)`, and it belongs to a cluster. 
 
 These two changes create an automaton from the datastore, where states are clusters, edges are pointers (shared among examples in the same cluster), and transition weights are the normalized distances between the test representation and each key.
 
@@ -81,8 +84,9 @@ tokenizer = AutoTokenizer.from_pretrained('neulab/gpt2-finetuned-wikitext103')
 model = AutoModelForCausalLM.from_pretrained('neulab/gpt2-finetuned-wikitext103')
 ```
 
-This project is not limited to these models, and can work with any language model.
-We fine-tuned all models using:
+This project is not limited to these models, and can work with any language model or seq2seq model.
+
+We fine-tuned all language models using:
 ```bash
 python run_clm.py --model_name_or_path <base_model_name> \
     --dataset_name wikitext --dataset_config_name wikitext-103-raw-v1 \
@@ -90,6 +94,8 @@ python run_clm.py --model_name_or_path <base_model_name> \
     --save_total_limit 5 --per_device_train_batch_size 2
 ```
 Where `<base_model_name>` is, for example, `gpt2`, `distilgpt2`, `gpt2-med`, `gpt2-large`, or `gpt2-xl`.
+
+We have not yet released finetuned machine translation models, but the code in this repository works for machine translation as well, using the `run_translation.py` script.
 
 ## Results - **Wikitext-103**
 The exact results from the RetoMaton papers can be reproduced using the code at [https://github.com/neulab/retomaton](https://github.com/neulab/retomaton) (based on `fairseq`).
@@ -114,7 +120,7 @@ These are the results from the RetoMaton paper, on a model that was trained on W
 
 
 
-## Quickstart
+## Quickstart - Language Modeling
 
 ### Step 0: Clone this repository:
 ```bash
@@ -239,6 +245,78 @@ Once the clustering file is saved in the directory pointed to by `--dstore_dir`,
 
 Optional clustering hyperparameters are `--num_clusters` (typically `1/100` or `1/200` of the datastore size) and `--sample_size`  (ideally as high as possible, but higher values consume more memory and take longer to run).
 
+## Machine Translation
+Using our code for machine translation and kNN-MT is very similar to language modeling, using the file `run_translation.py` instead of `run_clm.py`, and following the example instructions from huggingface: [https://github.com/huggingface/transformers/tree/main/examples/pytorch/translation](https://github.com/huggingface/transformers/tree/main/examples/pytorch/translation).
+
+Importantly, the `--knn_temp` flag should be used and tuned for kNN-MT. As shown in [the kNN-MT paper](https://arxiv.org/pdf/2010.00710), the optimal temperature for kNN-MT can be `100.0`.
+
+### Evaluating the base MT model 
+```bash
+MODEL=t5-small
+
+python -u run_translation.py  \
+  --model_name_or_path ${MODEL} \
+  --dataset_name wmt16 --dataset_config_name ro-en \
+  --per_device_eval_batch_size=4 \
+  --output_dir checkpoints-translation/${MODEL} \
+  --source_lang en --target_lang ro \
+  --do_eval \
+  --predict_with_generate \
+  --source_prefix "translate English to Romanian: "
+```
+
+**Note** that the flag `--source_prefix "translate English to Romanian: "` is slightly different for every model and task, and may be unneeded for other models, as detailed at [https://github.com/huggingface/transformers/tree/main/examples/pytorch/translation](https://github.com/huggingface/transformers/tree/main/examples/pytorch/translation).
+
+
+
+### Saving a datastore for kNN-MT
+```bash
+MODEL=t5-small
+
+python -u run_translation.py  \
+  --model_name_or_path ${MODEL} \
+  --dataset_name wmt16 --dataset_config_name ro-en \
+  --per_device_train_batch_size 4 --per_device_eval_batch_size=4 \
+  --output_dir checkpoints-translation/${MODEL} \
+  --source_lang en --target_lang ro \
+  --dstore_size 19254850 \
+  --dstore_dir checkpoints-translation/${MODEL} \
+   --save_knnlm_dstore --do_eval --eval_subset train
+```
+
+### Building the FAISS index for kNN-MT
+```bash
+MODEL=t5-small
+
+python -u run_translation.py  \
+  --model_name_or_path ${MODEL} \
+  --dataset_name wmt16 --dataset_config_name ro-en \
+  --per_device_train_batch_size 4 --per_device_eval_batch_size=4 \
+  --output_dir checkpoints-translation/${MODEL} \
+  --source_lang en --target_lang ro \
+  --dstore_size 19254850 \
+  --dstore_dir checkpoints-translation/${MODEL} \
+  --build_index
+```
+
+### Evaluating kNN-MT
+```bash
+MODEL=t5-small
+
+python -u run_translation.py  \
+  --model_name_or_path ${MODEL} \
+  --dataset_name wmt16 --dataset_config_name ro-en \
+  --per_device_eval_batch_size=4 \
+  --output_dir checkpoints-translation/${MODEL} \
+  --source_lang en --target_lang ro \
+  --do_eval \
+  --predict_with_generate \
+  --source_prefix "translate English to Romanian: " \
+  --dstore_dir checkpoints-translation/${MODEL} --knn_temp 100 \
+  --retomaton
+```
+
+To use kNN-MT, use the `--knn` flag instead of `--retomaton`.
 
 ## All files: 
 Datastores and indexes can be downloaded from
