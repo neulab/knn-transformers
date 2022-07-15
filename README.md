@@ -1,15 +1,15 @@
-# kNN-transformers: Nearest-Neighbor Language Models based on Hugging Face's 🤗 `transformers` library
+# kNN-transformers: Nearest-Neighbor Language and Machine Translation Models based on Hugging Face's 🤗 `transformers` library
 
 This is a Hugging Face's 🤗 `transformers` implementation of k-nearest-neighbor-based language models and machine translation models,
 designed to be easy and useful in research, and for experimenting with new ideas in kNN-based models. 
 
 All previous kNN-LM based implementations are implemented in the `fairseq` library, and **they forked/duplicated the library's entire codebase** to implement their modification.
-These include the official kNN-LM repository [https://github.com/urvashik/knnlm](https://github.com/urvashik/knnlm), the official RetoMaton repository [https://github.com/neulab/retomaton](https://github.com/neulab/retomaton), and others.
+These include the official kNN-LM repository [https://github.com/urvashik/knnlm](https://github.com/urvashik/knnlm), the kNN-MT repository [https://github.com/urvashik/knnmt](https://github.com/urvashik/knnmt), the official RetoMaton repository [https://github.com/neulab/retomaton](https://github.com/neulab/retomaton), and others.
 
 
 We implement the [k-nearest-neighbor language model (kNN-LM)](https://arxiv.org/pdf/1911.00172.pdf) (Khandelwal et al., ICLR'2020), the [k-nearest-neighbor machine translation (kNN-MT)](https://arxiv.org/pdf/2010.00710) (Khandelwal et al., ICLR'2021) and this is also
 an official implementation of the RetoMaton model described in:
-["Neuro-Symbolic Language Modeling with Automaton-augmented Retrieval"](https://arxiv.org/pdf/2201.12431.pdf) (ICML'2022). Most importantly, we implement these models in 🤗 `transformers`, and without modifying the `transformers` library itself.
+[Neuro-Symbolic Language Modeling with Automaton-augmented Retrieval](https://arxiv.org/pdf/2201.12431.pdf) (ICML'2022). Most importantly, we implement these models in 🤗 `transformers`, and without modifying the `transformers` library itself.
 
 To use this repository, all you need to do is copy its `*.py` files into your project.
 You can load any language model from Hugging Face's hub (such as `gpt2`, by `model = AutoModelForCausalLM.from_pretrained(...)`, build a datastore or download ours (need to be performed only once), and then:
@@ -41,6 +41,7 @@ Table of Contents
     * [Step 3: Building the FAISS index](#step-3-building-the-faiss-index)
     * [Step 4: Evaluating Models](#step-4-evaluating-models)
     * [Step 5: Adding clustering](#step-5-adding-clustering)
+  * [Machine Translation (kNN-MT)](#machine-translation-knn-mt)
   * [All files](#all-files)
   * [Differences from the kNN-LM implementation](#differences-from-the-knn-lm-implementation)
   * [Citation](#citation)
@@ -111,7 +112,7 @@ The following results were obtained using the code in this repository:
 | RetoMaton       | **14.70**  | **12.46**| **10.59**     |
 
 And when varying the fraction of saved searches:
-TODO
+<center style="padding: 40px"><img width="60%" src="images/wiki_gpt2.png" /></center>
 
 
 These are the results from the RetoMaton paper, on a model that was trained on Wikitext-103 from scratch:
@@ -245,10 +246,12 @@ Once the clustering file is saved in the directory pointed to by `--dstore_dir`,
 
 Optional clustering hyperparameters are `--num_clusters` (typically `1/100` or `1/200` of the datastore size) and `--sample_size`  (ideally as high as possible, but higher values consume more memory and take longer to run).
 
-## Machine Translation
+## Machine Translation (kNN-MT)
 Using our code for machine translation and kNN-MT is very similar to language modeling, using the file `run_translation.py` instead of `run_clm.py`, and following the example instructions from huggingface: [https://github.com/huggingface/transformers/tree/main/examples/pytorch/translation](https://github.com/huggingface/transformers/tree/main/examples/pytorch/translation).
 
-Importantly, the `--knn_temp` flag should be used and tuned for kNN-MT. As shown in [the kNN-MT paper](https://arxiv.org/pdf/2010.00710), the optimal temperature for kNN-MT can be `100.0`.
+Importantly, the `--knn_temp` flag should be used and tuned for kNN-MT. As shown in [the kNN-MT paper](https://arxiv.org/pdf/2010.00710), the optimal temperature for kNN-MT can be `10` to `100`.
+
+The `--lmbda` interpolation factor is also typically larger in kNN-MT, and can be `0.4`-`0.8`.
 
 ### Evaluating the base MT model 
 ```bash
