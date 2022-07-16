@@ -155,8 +155,10 @@ class KNNWrapper(object):
         dists, knns = dists.to(self.device), knns.to(self.device)
         return dists, knns
 
-    def pre_forward_hook(self, input_ids, attention_mask, labels=None, **kwargs):
+    def pre_forward_hook(self, input_ids=None, attention_mask=None, labels=None, **kwargs):
         self.input_ids = input_ids
+        if input_ids is None:
+            self.input_ids = kwargs['decoder_input_ids']
         self.labels = labels
         return self.original_forward_func(input_ids=input_ids, labels=labels, attention_mask=attention_mask, **kwargs)
 
