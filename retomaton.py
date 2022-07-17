@@ -47,7 +47,7 @@ class RetomatonWrapper(KNNWrapper):
                 self.members = pickle.load(file)
             members_for_indices = np.nonzero(self.members[np.arange(self.members.shape[0])])
             self.cluster = torch.zeros((self.dstore_size, ), dtype=torch.int32).to(self.device)
-            self.cluster[members_for_indices[1]] = torch.from_numpy(members_for_indices[0])
+            self.cluster[members_for_indices[1]] = torch.from_numpy(members_for_indices[0]).to(self.device)
 
         self.generate_cur_knns = torch.tensor([], dtype=torch.int64)
         self.generate_cur_dists = torch.tensor([], dtype=torch.float32)
@@ -148,7 +148,7 @@ class RetomatonWrapper(KNNWrapper):
         clusters, cluster_counts = torch.unique(self.cluster[pointers], return_counts=True)
         # Take smaller clusters first
         clusters = clusters[torch.argsort(-cluster_counts)]
-        members = torch.from_numpy(np.nonzero(self.members[clusters])[1]).to(self.device)
+        members = torch.from_numpy(np.nonzero(self.members[clusters.cpu().numpy()])[1]).to(self.device)
         # Prefer datastore entries that were directly pointed to by the previous time step's
         # datastore entries, over other members of their cluster
         extended_pointers = torch.cat([pointers, members])
