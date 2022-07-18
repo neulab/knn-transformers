@@ -25,7 +25,7 @@ The file `run_translation.py` is a modified version of [this tranlation example 
 
 
 This repository is maintained by [Uri Alon](https://urialon.ml).
-Please let us know if anythings is not working as expected, and feel free to create [new issues](https://github.com/neulab/knn-transformers/issues) or email [ualon@cs.cmu.edu](ualon@cs.cmu.edu) with any questions.
+Please let us know if anything is not working as expected, and feel free to create [new issues](https://github.com/neulab/knn-transformers/issues) or email [ualon@cs.cmu.edu](ualon@cs.cmu.edu) with any questions.
 Contributions are welcome!
 
 
