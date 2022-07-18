@@ -54,6 +54,7 @@ class RetomatonWrapper(KNNWrapper):
         self.no_lookup_counter_history = []
 
     def post_forward_hook(self, module, input, output):
+        shift = 0 if self.is_encoder_decoder else 1
         if self.labels is None:
             # In "generate" mode, we don't support yet tracking of the beam search hypotheses across time,
             # which we need to track in order to implement RetoMaton correctly. 
@@ -64,11 +65,12 @@ class RetomatonWrapper(KNNWrapper):
         lm_logits = torch.nn.functional.log_softmax(lm_logits, dim=-1) # (batch, time, vocab)
         queries = self.activation_capturer.captured # (batch, time, dim) 
         
+        shifted_labels = self.labels[:, shift:]
         nonpad_mask = torch.cat([
-            self.labels[:, 1:] != -100, 
-            torch.zeros([self.labels.shape[0], 1], dtype=torch.bool).to(self.device)
+            shifted_labels != -100, 
+            torch.zeros([self.labels.shape[0], shift], dtype=torch.bool).to(self.device)
         ], axis=-1)
-        captured_labels = self.labels[:, 1:][self.labels[:, 1:] != -100] # (nonpad)
+        captured_labels = shifted_labels[shifted_labels != -100] # (nonpad)
 
         queries = queries[nonpad_mask] # (nonpad, dim)
         lm_logits = lm_logits[nonpad_mask] # (nonpad, vocab)

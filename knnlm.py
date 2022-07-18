@@ -156,14 +156,12 @@ class KNNWrapper(object):
         return dists, knns
 
     def pre_forward_hook(self, input_ids=None, attention_mask=None, labels=None, **kwargs):
-        self.input_ids = input_ids
-        if input_ids is None:
-            self.input_ids = kwargs['decoder_input_ids']
         self.labels = labels
         return self.original_forward_func(input_ids=input_ids, labels=labels, attention_mask=attention_mask, **kwargs)
 
     def post_forward_hook(self, module, input, output):
         batch, time_dim, vocab_size = output.shape
+        shift = 0 if self.is_encoder_decoder else 1
         lm_logits = output
         lm_logits = torch.nn.functional.log_softmax(lm_logits, dim=-1) # (batch, time, vocab)
         queries = self.activation_capturer.captured # (batch, time, dim)
@@ -175,8 +173,8 @@ class KNNWrapper(object):
             ], axis=-1).to(self.device)
         else:
             nonpad_mask = torch.cat([
-                self.labels[:, 1:] != -100, 
-                torch.zeros([self.labels.shape[0], 1], dtype=torch.bool).to(self.device)
+                self.labels[:, shift:] != -100, 
+                torch.zeros([self.labels.shape[0], shift], dtype=torch.bool).to(self.device)
             ], axis=-1)
 
         lm_logits = lm_logits[nonpad_mask]
@@ -322,13 +320,16 @@ class KNNSaver(object):
         self.dstore_vals = np.memmap(vals_filename, dtype=np.int32, mode=mode, shape=(self.dstore_size, 1))
 
     def pre_forward_hook(self, input_ids, labels, attention_mask, **kwargs):
-        self.input_ids = input_ids
         self.labels = labels
         return self.original_forward_func(input_ids=input_ids, labels=labels, attention_mask=attention_mask, **kwargs)
 
     def post_forward_hook(self, module, input, output):
-        captured_keys = self.activation_capturer.captured[:, :-1].flatten(0, 1) # (batch * time, dim)
-        captured_values = self.labels[:, 1:].flatten(0, 1) # (batch * time)
+        shift = 0 if self.is_encoder_decoder else 1
+        captured_keys = self.activation_capturer.captured
+        if shift == 1:
+            captured_keys = captured_keys[:, :-shift]
+        captured_keys = captured_keys.flatten(0, 1) # (batch * time, dim)
+        captured_values = self.labels[:, shift:].flatten(0, 1) # (batch * time)
 
         nonpad_mask = captured_values != -100
         keys = captured_keys[nonpad_mask]
