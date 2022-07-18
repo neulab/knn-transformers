@@ -112,9 +112,9 @@ The following results were obtained using the code in this repository:
 | RetoMaton       | **14.70**  | **12.46**| **10.59**     |
 
 And when varying the fraction of saved searches:
+
+<center style="padding: 40px"><img width="60%" src="images/wiki_distilgpt2.png" /></center>
 <center style="padding: 40px"><img width="60%" src="images/wiki_gpt2.png" /></center>
-
-
 These are the results from the RetoMaton paper, on a model that was trained on Wikitext-103 from scratch:
 <center style="padding: 40px"><img width="60%" src="images/wiki.png" /></center>
 
