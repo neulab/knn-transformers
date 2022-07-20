@@ -213,7 +213,7 @@ class KNNArguments:
     dstore_dir: str = field(default="checkpoints")
     knn_sim_func: DIST.from_string = field(default=DIST.l2)
     lmbda: float = field(default=0.25)
-    k: float = field(default=1024)
+    k: int = field(default=1024)
     knn_temp: float = field(default=1.0)
     # Args for building the faiss index:
     build_index: bool = field(default=False)
