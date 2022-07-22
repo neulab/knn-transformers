@@ -227,7 +227,7 @@ Additional possible test-time tunable hyperparameters are `--lmbda` (the interpo
 
 ### Step 5: Adding clustering
 
-RetoMaton can work without, in which is utilizes its pointers.
+RetoMaton can work without clusers, in which is utilizes its pointers only.
 Using clustering allows it to save more nearest-neighbor searches and further reduce perplexity.
 
 To download our processed clusters the finetuned `gpt2` model (`neulab/gpt2-finetuned-wikitext103`):
