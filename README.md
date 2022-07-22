@@ -230,7 +230,14 @@ Additional possible test-time tunable hyperparameters are `--lmbda` (the interpo
 RetoMaton can work without, in which is utilizes its pointers.
 Using clustering allows it to save more nearest-neighbor searches and further reduce perplexity.
 
-To cluster similar keys for RetoMaton:
+To download our processed clusters the finetuned `gpt2` model (`neulab/gpt2-finetuned-wikitext103`):
+```
+wget -P checkpoints/gpt2/ https://knn-transformers.s3.amazonaws.com/index.htmlgpt2/members_gpt2_116988150_768_20000000_500000.pkl
+```
+
+Similarly, we also provide clusters for the `distilgpt2` model (`neulab/distilgpt2-finetuned-wikitext103`) at [https://knn-transformers.s3.amazonaws.com/index.html](https://knn-transformers.s3.amazonaws.com/index.html).
+
+To cluster similar keys for RetoMaton yourself:
 ```bash
 MODEL=neulab/gpt2-finetuned-wikitext103
 
