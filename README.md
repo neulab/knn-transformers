@@ -109,7 +109,7 @@ The following results were obtained using the code in this repository:
 | :---            |    ----:   |     ---: | ---:          |
 | base perplexity | 18.25      | 14.84    | 11.55         |
 | kNN-LM          |  15.03     |   12.57  |  **10.59**      |
-| RetoMaton       | **14.70**  | **12.46**| **10.59**     |
+| RetoMaton       | **14.71**  | **12.44**| **10.59**     |
 
 And when varying the fraction of saved searches:
 
@@ -129,7 +129,7 @@ git clone https://github.com/neulab/knn-transformers
 cd knn-transformers
 ```
 
-#### Requirements
+#### Requirements 
 Run:
 ```bash
 pip install requirements.txt`
