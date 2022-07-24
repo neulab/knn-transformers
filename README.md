@@ -118,8 +118,16 @@ And when varying the fraction of saved searches:
 These are the results from the RetoMaton paper, on a model that was trained on Wikitext-103 from scratch:
 <center style="padding: 40px"><img width="60%" src="images/wiki.png" /></center>
 
+## Results - **Translation**
+On the validation set of `--dataset_name wmt16 --dataset_config_name ro-en`.
 
+| Base model:     | `t5-small` | `t5-base` | 
+| :---            |    ----:   |     ---: | 
+| base BLEU       | 26.15      | 27.70    | 
+| + kNN-LM           |  **26.42**     |  **27.92**  | 
+|                   | `--knn_temp=50 --k=32 --lmbda=0.25` | `--knn_temp=200 --k=512 --lmbda=0.2`
 
+**If you perform additional experiments with our code, we would love to learn more about your results and share them here!**
 
 ## Quickstart - Language Modeling
 
@@ -280,6 +288,9 @@ python -u run_translation.py  \
 
 
 ### Saving a datastore for kNN-MT
+
+Examples datastores for `t5-small` and `t5-base` on `wmt16 en-ro` are available at [https://knn-transformers.s3.amazonaws.com/index.html](https://knn-transformers.s3.amazonaws.com/index.html).
+
 ```bash
 MODEL=t5-small
 
@@ -322,7 +333,8 @@ python -u run_translation.py  \
   --do_eval \
   --predict_with_generate \
   --source_prefix "translate English to Romanian: " \
-  --dstore_dir checkpoints-translation/${MODEL} --knn_temp 100 \
+  --dstore_dir checkpoints-translation/${MODEL} \
+  --knn_temp 50 --k 32 --lmbda 0.25 \
   --retomaton
 ```
 
@@ -342,7 +354,7 @@ We thus use the distances returned by `faiss` when performing search, or reconst
 
 
 ## Citation
-If you use this code for research, please cite:
+If you use our code for research, please cite:
 
 [Neuro-Symbolic Language Modeling with Automaton-augmented Retrieval](https://arxiv.org/pdf/2201.12431.pdf)
 
@@ -357,6 +369,7 @@ If you use this code for research, please cite:
 }
 ```
 
+This repository also implements:
 [Generalization through Memorization: Nearest Neighbor Language Models](https://arxiv.org/pdf/1911.00172)
 ```
 @inproceedings{khandelwal20generalization,
