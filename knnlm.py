@@ -139,8 +139,9 @@ class KNNWrapper(object):
         model.forward = self.pre_forward_hook
         
         # Inject our activation_capturer to capture the activations at every forward pass
-        layer_to_capture = KNNWrapper.model_layer_to_capture[model.config.model_type][self.knn_keytype](model)
-        self.activation_capturer = ActivationCapturer(layer_to_capture, capture_input=self.knn_keytype is KEY_TYPE.last_ffn_input)
+        layer_to_capture_fn, capture_input = KNNWrapper.model_layer_to_capture[model.config.model_type][self.knn_keytype]
+        layer_to_capture = layer_to_capture_fn(model)
+        self.activation_capturer = ActivationCapturer(layer_to_capture, capture_input=capture_input)
         self.register_hook(layer_to_capture, self.activation_capturer)
 
         # Inject our main function after the model's final layer
@@ -248,23 +249,25 @@ class KNNWrapper(object):
         if model_type.startswith('gpt2'):
             return lambda model: model.transformer.wte
 
+    # For every model name and key type, returns a lambda that returns the relevant layer in the model, 
+    # and whether the input of that layer should be captured (True) or the output (False)
     model_layer_to_capture = {
         'bart': {
-            KEY_TYPE.last_ffn_input: lambda model: model.base_model.decoder.layers[-1].fc1,
-            KEY_TYPE.last_ffn_output: lambda model: model.base_model.decoder.layers[-1], 
+            KEY_TYPE.last_ffn_input: (lambda model: model.base_model.decoder.layers[-1].fc1, True),
+            KEY_TYPE.last_ffn_output: (lambda model: model.base_model.decoder.layers[-1], False),
         },
         'gpt2': {
-            KEY_TYPE.last_ffn_input: lambda model: model.base_model.h[-1].mlp,
-            KEY_TYPE.last_ffn_output: lambda model: model.base_model.h[-1],
+            KEY_TYPE.last_ffn_input: (lambda model: model.base_model.h[-1].mlp, True),
+            KEY_TYPE.last_ffn_output: (lambda model: model.base_model.h[-1], False),
         },
         'marian': {
-            KEY_TYPE.last_ffn_input: lambda model: model.base_model.decoder.layers[-1].fc1,
-            KEY_TYPE.last_ffn_output: lambda model: model.base_model.decoder.layers[-1],
+            KEY_TYPE.last_ffn_input: (lambda model: model.base_model.decoder.layers[-1].fc1, True),
+            KEY_TYPE.last_ffn_output: (lambda model: model.base_model.decoder.layers[-1], False),
         },
         't5': {
-            KEY_TYPE.last_ffn_input: lambda model: model.base_model.decoder.block[-1].layer[2].DenseReluDense,
-            KEY_TYPE.last_ffn_output: lambda model: model.base_model.decoder.block[-1].layer[2],
-        }      
+            KEY_TYPE.last_ffn_input: (lambda model: model.base_model.decoder.block[-1].layer[2].DenseReluDense, True),
+            KEY_TYPE.last_ffn_output: (lambda model: model.base_model.decoder.block[-1].layer[2], False),
+        }
 }
     
 
@@ -295,8 +298,9 @@ class KNNSaver(object):
         self.is_encoder_decoder = model.config.is_encoder_decoder
         
         # Inject our activation_capturer to capture the activations at every forward pass
-        layer_to_capture = KNNWrapper.model_layer_to_capture[model.config.model_type][self.knn_keytype](model)
-        self.activation_capturer = ActivationCapturer(layer_to_capture, capture_input=self.knn_keytype is KEY_TYPE.last_ffn_input)
+        layer_to_capture_fn, capture_input = KNNWrapper.model_layer_to_capture[model.config.model_type][self.knn_keytype]
+        layer_to_capture = layer_to_capture_fn(model)
+        self.activation_capturer = ActivationCapturer(layer_to_capture, capture_input=capture_input)
         self.register_hook(layer_to_capture, self.activation_capturer)
 
         # Inject our pre_forward_hook to capture the labels at every forward pass
@@ -413,7 +417,6 @@ class ActivationCapturer(nn.Module):
         super().__init__()
         self.layer = layer
         self.capture_input = capture_input
-        # self.hook_handle = layer.register_forward_hook(self.hook_fn)
 
         self.captured = None
 
@@ -422,7 +425,7 @@ class ActivationCapturer(nn.Module):
         if self.capture_input:
             self.captured = input[0].detach()
         else:
-            self.captured = output[0].detach()
+            self.captured = output.detach()
 
 
 def get_dstore_path(dstore_dir, model_type, dstore_size, dimension):
