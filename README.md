@@ -21,7 +21,7 @@ knn_wrapper.break_into(model)
 That's it! The model now internally uses kNN-LM or RetoMaton (see a concrete example at [run_clm.py](run_clm.py#L427-L438))
 
 The files `knnlm.py` and `retomaton.py` are standalone and can be copied to any project. The file `run_clm.py` is a modified version of [this example by huggingface](https://github.com/huggingface/transformers/blob/main/examples/pytorch/language-modeling/run_clm.py) which shows an example of how to load and run kNN-LM and RetoMaton.
-The file `run_translation.py` is a modified version of [this tranlation example by huggingface](https://github.com/huggingface/transformers/tree/main/examples/pytorch/translation), which shows how to use our code for kNN-MT and RetoMaton.
+The file `run_translation.py` is a modified version of [this translation example by huggingface](https://github.com/huggingface/transformers/tree/main/examples/pytorch/translation), which shows how to use our code for kNN-MT and RetoMaton.
 
 
 This repository is maintained by [Uri Alon](https://urialon.ml).
@@ -235,7 +235,7 @@ Additional possible test-time tunable hyperparameters are `--lmbda` (the interpo
 
 ### Step 5: Adding clustering
 
-RetoMaton can work without clusers, in which is utilizes its pointers only.
+RetoMaton can work without clusters, in which is utilizes its pointers only.
 Using clustering allows it to save more nearest-neighbor searches and further reduce perplexity.
 
 To download our processed clusters the finetuned `gpt2` model (`neulab/gpt2-finetuned-wikitext103`):
