@@ -124,7 +124,7 @@ On the validation set of `--dataset_name wmt16 --dataset_config_name ro-en`.
 | Base model:     | `t5-small` | `t5-base` | 
 | :---            |    ----:   |     ---: | 
 | base BLEU       | 26.15      | 27.70    | 
-| + kNN-LM           |  **26.42**     |  **27.92**  | 
+| + kNN-MT          |  **26.42**     |  **27.92**  | 
 |                   | `--knn_temp=50 --k=32 --lmbda=0.25` | `--knn_temp=200 --k=512 --lmbda=0.2`
 
 **If you perform additional experiments with our code, we would love to learn more about your results and share them here!**
