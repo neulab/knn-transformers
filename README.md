@@ -7,12 +7,12 @@ All previous kNN-LM based implementations are implemented in the `fairseq` libra
 These include the official kNN-LM repository [https://github.com/urvashik/knnlm](https://github.com/urvashik/knnlm), the kNN-MT repository [https://github.com/urvashik/knnmt](https://github.com/urvashik/knnmt), the official RetoMaton repository [https://github.com/neulab/retomaton](https://github.com/neulab/retomaton), and others.
 
 
-We implement the [k-nearest-neighbor language model (kNN-LM)](https://arxiv.org/pdf/1911.00172.pdf) (Khandelwal et al., ICLR'2020), the [k-nearest-neighbor machine translation (kNN-MT)](https://arxiv.org/pdf/2010.00710) (Khandelwal et al., ICLR'2021) and this is also
+We implement [k-nearest-neighbor language model (kNN-LM)](https://arxiv.org/pdf/1911.00172.pdf) (Khandelwal et al., ICLR'2020), [k-nearest-neighbor machine translation (kNN-MT)](https://arxiv.org/pdf/2010.00710) (Khandelwal et al., ICLR'2021) and this is also
 an official implementation of the RetoMaton model described in:
 [Neuro-Symbolic Language Modeling with Automaton-augmented Retrieval](https://arxiv.org/pdf/2201.12431.pdf) (ICML'2022). Most importantly, we implement these models in 🤗 `transformers`, and without modifying the `transformers` library itself.
 
 To use this repository, all you need to do is copy its `*.py` files into your project.
-You can load any language model from Hugging Face's hub (such as `gpt2`, by `model = AutoModelForCausalLM.from_pretrained(...)`, build a datastore or download ours (need to be performed only once), and then:
+You can load any language model from Hugging Face's hub (such as `gpt2`), by `model = AutoModelForCausalLM.from_pretrained(...)`, build a datastore or download ours (need to be performed only once), and then:
 ```python
 knn_wrapper = KNNWrapper(...) # or: RetomatonWrapper(...)
 knn_wrapper.break_into(model)
