@@ -301,7 +301,8 @@ python -u run_translation.py  \
   --output_dir checkpoints-translation/${MODEL} \
   --source_lang en --target_lang ro \
   --dstore_dir checkpoints-translation/${MODEL} \
-   --save_knnlm_dstore --do_eval --eval_subset train
+   --save_knnlm_dstore --do_eval --eval_subset train \
+   --source_prefix "translate English to Romanian: "
 ```
 
 ### Building the FAISS index for kNN-MT

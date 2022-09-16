@@ -323,7 +323,9 @@ class KNNSaver(object):
         self.dstore_keys = np.memmap(keys_filename, dtype=np.float16, mode=mode, shape=(self.dstore_size, self.dimension))
         self.dstore_vals = np.memmap(vals_filename, dtype=np.int32, mode=mode, shape=(self.dstore_size, 1))
 
-    def pre_forward_hook(self, input_ids, labels, attention_mask, **kwargs):
+    def pre_forward_hook(self, input_ids=None, attention_mask=None, labels=None, **kwargs):
+        if labels is None:
+            labels = input_ids
         self.labels = labels
         return self.original_forward_func(input_ids=input_ids, labels=labels, attention_mask=attention_mask, **kwargs)
 
