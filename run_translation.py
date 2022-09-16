@@ -570,6 +570,8 @@ def main():
         for chunk in eval_dataset['labels']:
             total_eval_tokens += len([x for x in chunk if x != -100])
         logger.info(f'[{data_args.eval_subset}] Total eval tokens: {total_eval_tokens}')
+        if knn_args.dstore_size is None and knn_args.save_knnlm_dstore:
+            knn_args.dstore_size = total_eval_tokens
 
     if training_args.do_predict:
         max_target_length = data_args.val_max_target_length
