@@ -333,6 +333,7 @@ python -u run_translation.py  \
   --do_eval \
   --predict_with_generate \
   --source_prefix "translate English to Romanian: " \
+  --dstore_size 26565876 \
   --dstore_dir checkpoints-translation/${MODEL} \
   --knn_temp 50 --k 32 --lmbda 0.25 \
   --retomaton

@@ -325,7 +325,7 @@ class KNNSaver(object):
 
     def pre_forward_hook(self, input_ids=None, attention_mask=None, labels=None, **kwargs):
         if labels is None:
-            labels = input_ids
+            raise ValueError('labels must be provided when saving a datastore. Are you using --predict_with_generate by mistake? If so, disable it')
         self.labels = labels
         return self.original_forward_func(input_ids=input_ids, labels=labels, attention_mask=attention_mask, **kwargs)
 
