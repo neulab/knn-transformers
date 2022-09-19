@@ -276,7 +276,6 @@ class KNNArguments:
     move_dstore_to_mem: bool = field(default=True)
     no_load_keys: bool = field(default=True)
     recompute_dists: bool = field(default=False)
-    knn_drop: float = field(default=0.0)
 
     ## RetoMaton args:
     retomaton: bool = field(default=False)
@@ -453,7 +452,7 @@ def main():
             knn_sim_func=knn_args.knn_sim_func, knn_keytype=knn_args.knn_keytype,
             no_load_keys=knn_args.no_load_keys, move_dstore_to_mem=knn_args.move_dstore_to_mem, knn_gpu=knn_args.knn_gpu,
             recompute_dists=knn_args.recompute_dists,
-            k=knn_args.k, lmbda=knn_args.lmbda, knn_temp=knn_args.knn_temp, probe=knn_args.probe, knn_drop=knn_args.knn_drop)
+            k=knn_args.k, lmbda=knn_args.lmbda, knn_temp=knn_args.knn_temp, probe=knn_args.probe)
     elif knn_args.save_knnlm_dstore or knn_args.build_index:
         training_args.predict_with_generate = False
         knn_wrapper = KNNSaver(dstore_size=knn_args.dstore_size, dstore_dir=knn_args.dstore_dir, 
