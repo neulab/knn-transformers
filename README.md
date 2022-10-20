@@ -300,6 +300,7 @@ python -u run_translation.py  \
   --per_device_train_batch_size 4 --per_device_eval_batch_size=4 \
   --output_dir checkpoints-translation/${MODEL} \
   --source_lang en --target_lang ro \
+  --dstore_size 26565876 \
   --dstore_dir checkpoints-translation/${MODEL} \
    --save_knnlm_dstore --do_eval --eval_subset train \
    --source_prefix "translate English to Romanian: "
