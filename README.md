@@ -31,6 +31,7 @@ Contributions are welcome!
 
 Table of Contents
 =================
+  * [Web Demo](#web-demo)
   * [Background](#background)
   * [Available Models](#available-models)
   * [Results](#results)
@@ -45,6 +46,10 @@ Table of Contents
   * [All files](#all-files)
   * [Differences from the kNN-LM implementation](#differences-from-the-knn-lm-implementation)
   * [Citation](#citation)
+  
+# Web Demo
+
+Integrated into [Huggingface Spaces 🤗](https://huggingface.co/spaces) using [Gradio](https://github.com/gradio-app/gradio). Try out the Web Demo [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/ICML2022/distilgpt2-finetuned-wikitext103)
 
 ## Background
 
